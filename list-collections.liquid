@@ -1,0 +1,87 @@
+<div class="row products masonry">
+  
+  {% assign collections_array = "{ 'collections_sort':[" %}
+  {% comment %} 
+    
+    It is not really an array :D
+    But a large json string. 
+    We also need to have a counter variable for the ID's of our placeholder DOM elements
+    You can use whatever markup you want for your template just make sure you use the counter
+    in the ID name of the elements for each collection item in the loop. 
+  {% endcomment %}
+  
+  {% assign j = 0 %}
+
+  {% for collection in collections %}
+  
+  {% comment %} We need to slice off the closing brace to stick out metafield into the object {% endcomment %}
+  {% assign json_slice = collection | json | size | minus: 1 %}
+    
+    {% comment %} Check if we have a post date attached {% endcomment %}
+    {% if collection.metafields.date.posted %}
+  
+        {% comment %} Add in our Metafield to the object json, repeat for each collection {% endcomment %}
+  		{% capture add_collection %}{{ collection | json | slice: 0, json_slice }}, "date": "{{ collection.metafields.date.posted }}" }, {% endcapture %}
+        {% assign collections_array = collections_array | append: add_collection %}
+         
+         {% comment %} 
+         There is no styling applied to this basic placeholder elements
+         You can modify the HTML elements but then will need to make sure
+         the Jquery lower down is updated to update whatever elements you add
+         Be sure to use the counter j at the end of your element ID's
+         {% endcomment %}
+  		<div id="collection_{{ j }}">
+            <a id="collection_link_{{ j }}" href="">
+              <img id="img_{{ j }}" src="" width="300px"/>
+              <h1 id="title_{{ j }}">{{ j }}</h1>
+          </a>
+        </div>
+  
+        {% assign j = j | plus: 1 %}
+    {% endif %}
+  {% endfor %}
+  {% comment %} Close the JSON collections data {% endcomment %}
+  {% assign collections_array = collections_array | append: "] }" %}        
+  {% assign sorted_collections = collections_array | json_parse %}
+  
+</div> <!-- /#collection.row -->
+
+<script>
+  //Create our object out of the json string
+  var obj = {{ sorted_collections | json_parse }};
+  
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      var val = obj[key];
+    }
+    //Let the Sorting Begin!
+    obj.collections_sort.sort(function(a, b) {
+      if (a.date > b.date) {
+          return 1;
+      } else if (a.fname < b.fname) {
+          return -1;
+      }
+      return 0;
+    });
+    
+  }
+  
+  $.each(obj, function(index) {
+	var i=0; //Our counter to line up with the Placeholder ID's
+    $.each(obj[index], function(key, value) {
+        
+        /* If you have additional DOM elements you wish to update
+        You would need to add the JQuery here to update them.
+        This will all depend on how you have place holder elements set up
+        */
+        
+        $("#img_"+i).attr("src", this.image.src );
+        $("#title_"+i).text( this.title );
+        $("#collection_link_"+i).attr("href", "/collections/" + this.handle );
+      
+      i++;
+    });
+
+});
+
+</script>
