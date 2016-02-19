@@ -14,7 +14,7 @@
 
   {% for collection in collections %}
   
-  {% comment %} We need to slice off the closing brace to stick out metafield into the object {% endcomment %}
+  {% comment %} We need to slice off the closing brace to stick our metafield into the object {% endcomment %}
   {% assign json_slice = collection | json | size | minus: 1 %}
     
     {% comment %} Check if we have a post date attached {% endcomment %}
